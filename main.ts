@@ -1,18 +1,19 @@
-// A working gta6-01 entry (Node 22, standard library only): the game is this directory's
-// game/ folder, plain static files a desktop browser loads offline (game/index.html and its ES
-// modules, no library and no network request), and the program hands it in. It copies game/ and
-// screenshots/ from beside this file to /output and writes /output/dossier.json, the summary the
-// judge reads, with the vendored make.fun library. Only the plumbing, not an open world: Block
-// Dodger, a plain 2D canvas game where a paddle dodges falling blocks and catches coins, with a
-// title screen, score, lives and levels, game over and restart, flat colours and no sound. Build
-// your own open-world crime game in its place (three.js or any library you vendor under game/),
-// put your 3 or 4 PNG or JPEG screenshots in screenshots/ (the first by name is the cover) and run it.
+// PALMA HEAT — a working gta6-01 entry (Node 22, standard library only): the game is this
+// directory's game/ folder, plain static files a desktop browser loads offline
+// (game/index.html and its ES modules, three.js vendored under game/vendor/, no network
+// request), and the program hands it in. It copies game/ and screenshots/ from beside this
+// file to /output and writes /output/dossier.json, the summary the judge reads, with the
+// vendored make.fun library. The game itself is PALMA HEAT: an original 3D open-world crime
+// game in the fictional bay city of Bahía Palma — a deterministic road-grid city, traffic and
+// pedestrian AI, a 0–5-star wanted/police system, pistol + melee combat, Carmen Vega's
+// 3-mission story chain (First Run, Marina Muscle, Palma Trust), package pickups, checkpoint
+// street races, a full HUD with minimap, localStorage saves, and WebAudio-synthesised sound.
 //
 // Serve it locally with `node serve.ts`, then open http://localhost:8080.
 // Outside the grader's container, MAKEFUN_OUTPUT_DIR stands in for /output:
 //   mkdir -p out && MAKEFUN_OUTPUT_DIR=out node main.ts
 
-import { cpSync, existsSync, mkdirSync, writeFileSync } from 'node:fs';
+import { cpSync, existsSync, mkdirSync, readdirSync, statSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { buildDossier } from './vendor/makefun-game.ts';
@@ -29,6 +30,21 @@ if (existsSync(join(here, 'screenshots'))) cpSync(join(here, 'screenshots'), joi
 // scorer would refuse (more than 4 screenshots or one over 256 KiB; more than 993 files in game/ or 48 MiB of game
 // files, in all, or a path under game/ over 1000 bytes: game/ counts beside /output's own 1000-entry cap, its
 // screenshots/ and dossier.json).
+// PALMA HEAT improvement: a one-line validation log of what was actually copied, so a
+// handover run proves at a glance that game/ and screenshots/ arrived complete in /output.
+function countCopied(dir: string): { files: number; bytes: number } {
+  let files = 0, bytes = 0;
+  for (const name of readdirSync(dir)) {
+    const p = join(dir, name), s = statSync(p);
+    if (s.isDirectory()) { const sub = countCopied(p); files += sub.files; bytes += sub.bytes; }
+    else { files++; bytes += s.size; }
+  }
+  return { files, bytes };
+}
+const copiedGame = countCopied(join(out, 'game'));
+const copiedShots = countCopied(join(out, 'screenshots'));
+console.log(`PALMA HEAT handover: game/ = ${copiedGame.files} files, ${copiedGame.bytes} bytes; screenshots/ = ${copiedShots.files} files, ${copiedShots.bytes} bytes -> ${out}`);
+
 writeFileSync(
   join(out, 'dossier.json'),
   buildDossier(out, {

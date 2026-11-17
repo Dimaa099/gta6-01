@@ -1,79 +1,53 @@
-// The screenshot scenes behind ?shot=start|play|end. Each one plays the real rules forward from a
-// fresh world for a fixed number of steps, steered by a simple autopilot (look ahead each way the
-// paddle could move, keep clear of blocks, chase the lowest coin when that is safe), so the frame
-// is what a short game really looks like and the same seed always gives the same frame.
-import { FIELD, PLAYER, STEP } from './config.js';
-import { EVENT_OVER, KIND_BLOCK } from './world.js';
-import { SCREEN_OVER, SCREEN_PLAY, SCREEN_TITLE } from './render.js';
-
-const START_SECONDS = 5;
-const PLAY_SECONDS = 26;
-const END_LIMIT_SECONDS = 600;
-/**
- * How far ahead, in seconds, the autopilot checks each way it could move: the play scene's pilot
- * looks well ahead and keeps all its lives; the end scene's looks only a moment ahead, so it is
- * caught out once the blocks speed up, as a hurried player is.
- */
-const HORIZON_PLAY = 0.7;
-const HORIZON_END = 0.25;
-const SAMPLE = 1 / 30;
-const DIRECTIONS = [0, -1, 1];
-/** Extra room, each side, it keeps between the paddle and a block. */
-const MARGIN = 10;
-
-/** Seconds until moving in `direction` (-1, 0, 1) runs the paddle into a block; Infinity when it never does. */
-function timeToHit(state, direction, horizon) {
-  const player = state.player;
-  for (let t = SAMPLE; t <= horizon; t += SAMPLE) {
-    const x = Math.min(FIELD.width - player.width, Math.max(0, player.x + direction * PLAYER.speed * t));
-    for (let index = 0; index < state.items.length; index += 1) {
-      const item = state.items[index];
-      if (!item.active || item.kind !== KIND_BLOCK) continue;
-      const y = item.y + item.speed * t;
-      if (y + item.height > player.y && y < player.y + player.height && item.x < x + player.width + MARGIN && item.x + item.width > x - MARGIN) return t;
-    }
-  }
-  return Infinity;
+// PALMA HEAT — staged, frozen screenshot scenes for ?shot=<name>&seed=1.
+import { G, poi } from './config.js';
+import { createCar } from './vehicles.js';
+import { setWanted } from './police.js';
+import { phone, setObjective } from './missions.js';
+function cam(x, y, z, lx, ly, lz) {
+  G.camera.position.set(x, y, z); G.camera.lookAt(lx, ly, lz);
 }
-
-/** Of the safe ways to move, the one toward the lowest coin (or the centre); else the one that is hit last. */
-function autopilot(state, horizon) {
-  const player = state.player;
-  let coin = null;
-  for (let index = 0; index < state.items.length; index += 1) {
-    const item = state.items[index];
-    if (item.active && item.kind !== KIND_BLOCK && (coin === null || item.y > coin.y)) coin = item;
-  }
-  const target = coin === null ? FIELD.width / 2 : coin.x + coin.width / 2;
-  const centre = player.x + player.width / 2;
-  const wanted = target > centre + 8 ? 1 : target < centre - 8 ? -1 : 0;
-  let best = wanted;
-  let bestTime = timeToHit(state, wanted, horizon);
-  for (let index = 0; index < DIRECTIONS.length && bestTime !== Infinity; index += 1) {
-    const time = timeToHit(state, DIRECTIONS[index], horizon);
-    if (time > bestTime) {
-      bestTime = time;
-      best = DIRECTIONS[index];
-    }
-  }
-  return best;
+function shotPolice(x, z, angle) {
+  const car = createCar(G.scene, { kind: 'police', color: 0xf0f2f4, role: 'police', x, z, angle });
+  car.group.userData.lights.rl.material.emissiveIntensity = 3;
+  car.group.userData.lights.bl.material.emissiveIntensity = 3;
+  G.policeCars.push(car); return car;
 }
-
-/**
- * Set `world` to the named scene (start, play or end; any other name is start) and return the
- * screen to draw over it and the best score to show.
- */
-export function stageShot(name, world) {
-  world.reset();
-  if (name !== 'play' && name !== 'end') {
-    for (let index = 0; index < START_SECONDS / STEP; index += 1) world.step(STEP, 0, true);
-    return { screen: SCREEN_TITLE, best: 0 };
+export function stageShot(name) {
+  const p = G.player; if (!p) return;
+  G.shotName = name;
+  if (name === 'title') { // title screen floats over the bay at golden hour
+    cam(60, 26, 235, 0, 4, 120); return;
   }
-  const limit = name === 'end' ? END_LIMIT_SECONDS : PLAY_SECONDS;
-  const horizon = name === 'end' ? HORIZON_END : HORIZON_PLAY;
-  for (let index = 0; index < limit / STEP; index += 1) {
-    if (world.step(STEP, autopilot(world.state, horizon), false) & EVENT_OVER) break;
+  G.mode = 'play'; G.started = true;
+  const title = document.getElementById('title'); if (title) title.style.display = 'none';
+  const hud = document.getElementById('hud'); if (hud) hud.style.display = 'block';
+  if (name === 'chase') {
+    const car = G.missionCars.vegaCar;
+    car.pos.set(3, 0, -21); car.angle = Math.PI / 2; car.group.rotation.y = car.angle; car.speed = 19;
+    p.inCar = car; car.role = 'player'; p.grp.visible = false; p.pos.set(3, 0, -21);
+    shotPolice(-7, -24.2, Math.PI / 2); shotPolice(-9, -17.6, Math.PI / 2);
+    setWanted(3); G.cash = 740;
+    setObjective('M1 · Deliver the package to Vega’s Garage');
+    phone('Heat’s on you, Marco — lose them or reach my Garage. GO.');
+    cam(-19, 5.2, -21, 16, 1.1, -21);
+  } else if (name === 'foot') {
+    p.pos.set(8, 0, -10.5); p.yaw = 2.6; p.grp.rotation.y = p.yaw;
+    G.camYaw = 0.4; G.camPitch = 0.25; G.cash = 260;
+    setObjective('M1 · First Run — get in Vega’s sedan at the Garage');
+    cam(1, 3.2, -3.5, 11, 1.2, -13);
+  } else if (name === 'bank') {
+    const b = poi('bank');
+    p.pos.set(b.x + 2, 0, b.z + 14); p.yaw = Math.PI; p.grp.rotation.y = p.yaw;
+    G.cash = 3910; setWanted(3);
+    shotPolice(b.x + 13, b.z + 17, -0.5); shotPolice(b.x - 18, b.z + 26, 0.6);
+    setObjective('M3 · Escape to the Hideout (NE corner)');
+    phone('Three stars, Marco — the Hideout. DON’T stop.');
+    cam(b.x - 7, 4.5, b.z + 27, b.x + 1, 1.6, b.z + 8);
+  } else if (name === 'marina') {
+    p.pos.set(121, 0, 171); p.yaw = 0.5; p.grp.rotation.y = p.yaw;
+    G.cash = 620; setWanted(0);
+    setObjective('M2 · Steal the orange Cometa GT (guards are armed)');
+    phone('That orange GT, Marco. Guards too. Take it.');
+    cam(109, 4.6, 186, 130, 1, 158);
   }
-  const over = world.state.lives === 0;
-  return { screen: over ? SCREEN_OVER : SCREEN_PLAY, best: world.state.score };
 }

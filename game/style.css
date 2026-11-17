@@ -1,0 +1,49 @@
+/* PALMA HEAT — overlay & HUD styling (sunset palette, chunky arcade type). */
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; overflow: hidden; background: #1a1210; font-family: system-ui, -apple-system, 'Segoe UI', sans-serif; color: #fff7ea; }
+#game, #game canvas { position: fixed; inset: 0; display: block; }
+#hud { position: fixed; inset: 0; pointer-events: none; z-index: 5; }
+#minimap { position: absolute; top: 14px; right: 14px; width: 184px; height: 184px; border: 2px solid rgba(255,217,122,.8); border-radius: 10px; background: #223; box-shadow: 0 4px 18px rgba(0,0,0,.5); }
+#top-left { position: absolute; top: 14px; left: 16px; text-shadow: 0 2px 4px rgba(0,0,0,.8); }
+#cash { font-size: 30px; font-weight: 800; color: #8dff9a; letter-spacing: .5px; }
+#stars { font-size: 24px; color: #ffc93c; letter-spacing: 3px; }
+#hp-wrap { position: relative; width: 190px; height: 16px; background: rgba(0,0,0,.55); border: 1px solid rgba(255,255,255,.5); border-radius: 8px; margin-top: 5px; overflow: hidden; }
+#hp-fill { height: 100%; width: 100%; background: #7ee2a8; transition: width .18s; }
+#hp-text { position: absolute; right: 6px; top: -1px; font-size: 12px; font-weight: 700; }
+#ammo { margin-top: 5px; font-size: 17px; font-weight: 700; font-family: ui-monospace, Menlo, monospace; }
+#objective { position: absolute; top: 14px; left: 50%; transform: translateX(-50%); max-width: 52%; background: rgba(20,14,8,.72); border: 1px solid rgba(255,201,60,.75); padding: 8px 14px; border-radius: 9px; font-size: 15px; font-weight: 600; text-align: center; }
+#race-info { position: absolute; top: 208px; right: 14px; background: rgba(10,30,40,.75); padding: 6px 10px; border-radius: 8px; font-size: 14px; font-family: ui-monospace, Menlo, monospace; }
+#speed { position: absolute; right: 22px; bottom: 22px; font-size: 34px; font-weight: 800; font-family: ui-monospace, Menlo, monospace; text-shadow: 0 2px 6px rgba(0,0,0,.85); }
+#prompt { position: absolute; left: 50%; bottom: 118px; transform: translateX(-50%); background: rgba(0,0,0,.72); padding: 8px 16px; border-radius: 20px; font-size: 16px; font-weight: 600; }
+#bust-wrap { position: absolute; left: 50%; top: 34%; transform: translateX(-50%); text-align: center; }
+#bust-wrap label { font-size: 26px; font-weight: 900; color: #ff6a5a; letter-spacing: 4px; text-shadow: 0 2px 8px #000; }
+#bust-bar { width: 280px; height: 14px; background: rgba(0,0,0,.6); border: 1px solid #ff6a5a; border-radius: 7px; overflow: hidden; }
+#bust-fill { height: 100%; width: 0; background: #ff4030; }
+#dialogue { position: absolute; left: 50%; bottom: 26px; transform: translateX(-50%); width: min(680px, 86%); background: rgba(16,18,26,.88); border-left: 5px solid #ffc93c; border-radius: 10px; padding: 10px 16px; box-shadow: 0 6px 22px rgba(0,0,0,.5); }
+#dlg-from { font-size: 13px; font-weight: 700; color: #ffc93c; margin-bottom: 3px; }
+#dlg-text { font-size: 16px; line-height: 1.35; }
+#toasts { position: absolute; left: 16px; bottom: 64px; display: flex; flex-direction: column; gap: 6px; }
+.toast { background: rgba(20,26,20,.85); border: 1px solid rgba(141,255,154,.6); padding: 7px 12px; border-radius: 8px; font-size: 15px; font-weight: 600; transition: opacity .5s; }
+.toast.fade { opacity: 0; }
+#crosshair { position: absolute; left: 50%; top: 50%; width: 22px; height: 22px; transform: translate(-50%,-50%); }
+#crosshair i { position: absolute; background: #fff; box-shadow: 0 0 3px #000; }
+#crosshair i:nth-child(1) { left: 10px; top: 0; width: 2px; height: 7px; }
+#crosshair i:nth-child(2) { left: 10px; bottom: 0; width: 2px; height: 7px; }
+#crosshair i:nth-child(3) { top: 10px; left: 0; height: 2px; width: 7px; }
+#crosshair i:nth-child(4) { top: 10px; right: 0; height: 2px; width: 7px; }
+#vignette { position: absolute; inset: 0; pointer-events: none; opacity: 0; background: radial-gradient(ellipse at center, transparent 46%, rgba(200,10,0,.55) 100%); }
+#hint { position: absolute; left: 50%; bottom: 4px; transform: translateX(-50%); font-size: 11.5px; color: rgba(255,255,255,.75); text-shadow: 0 1px 2px #000; white-space: nowrap; }
+.overlay { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; background: linear-gradient(180deg, rgba(30,10,4,.42), rgba(10,6,14,.66)); z-index: 10; }
+.panel { background: rgba(18,14,20,.92); border: 2px solid rgba(255,201,60,.65); border-radius: 16px; padding: 28px 34px; width: min(560px, 92vw); max-height: 92vh; overflow: auto; text-align: center; box-shadow: 0 18px 60px rgba(0,0,0,.7); }
+.panel.danger { border-color: rgba(255,90,78,.8); }
+.logo { font-size: 58px; margin: 0 0 6px; font-weight: 900; letter-spacing: 2px; color: #fff; text-shadow: 0 4px 0 #c94f38, 0 8px 22px rgba(0,0,0,.6); }
+.logo span { color: #ffc93c; }
+.tag { color: #e8dcc4; line-height: 1.45; margin: 4px 0 18px; }
+.menu-btn { display: block; width: 100%; margin: 9px 0; padding: 13px; font-size: 17px; font-weight: 700; color: #fff7ea; background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.35); border-radius: 10px; cursor: pointer; transition: all .12s; }
+.menu-btn:hover { background: rgba(255,201,60,.28); border-color: #ffc93c; transform: translateY(-1px); }
+.menu-btn.primary { background: linear-gradient(180deg, #e86a3a, #c94f38); border-color: #ffb37a; }
+.menu-btn.primary:hover { background: linear-gradient(180deg, #ff7d47, #d95a40); }
+.menu-btn:disabled { cursor: default; }
+#how { text-align: left; font-size: 14px; line-height: 1.5; background: rgba(255,255,255,.06); border-radius: 10px; padding: 10px 14px; margin-top: 10px; }
+.foot { font-size: 12px; color: rgba(255,255,255,.55); margin-top: 14px; }
+h2 { margin-top: 0; letter-spacing: 1px; }
